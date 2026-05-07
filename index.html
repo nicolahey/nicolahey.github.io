@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="manifest.json">
-    <link rel="manifest" href="data:application/manifest+json,{'display':'standalone','start_url':'index.html','name':'Samsung AOD'}">
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#000000">
+    
+    <link rel="manifest" href="data:application/manifest+json,{'display':'fullscreen','start_url':'index.html','name':'Samsung AOD'}">
+
     <title>Samsung AOD One UI 8</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap');
@@ -24,7 +24,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* OROLOGIO PERFETTO */
+        /* OROLOGIO */
         #aod-clock { margin-top: 15vh; text-align: center; }
         .time-wrapper { display: flex; flex-direction: column; align-items: center; }
         .digit { font-size: 7.5rem; font-weight: 700; line-height: 0.85; letter-spacing: -4px; color: #eeeeee; }
@@ -42,7 +42,7 @@
             z-index: 10; transition: transform 0.1s ease; object-fit: contain;
         }
 
-        /* ONDE BIANCHE - ULTRA SPESSE */
+        /* ONDE BIANCHE ULTRA SPESSE */
         .wave {
             position: absolute;
             border: 12px solid #ffffff; 
@@ -84,7 +84,7 @@
             document.getElementById('aod-date').textContent = now.toLocaleDateString('it-IT', opt);
         }
 
-        // BLOCCA SPEGNIMENTO SCHERMO
+        // Impedisce allo schermo di spegnersi
         if ('wakeLock' in navigator) {
             navigator.wakeLock.request('screen').catch((err) => console.log(err));
         }
