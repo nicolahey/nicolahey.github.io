@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="data:application/manifest+json,{'display':'standalone','start_url':'index.html','name':'Samsung AOD'}">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <title>Samsung AOD One UI 8</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap');
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000; color: #fff;
+            font-family: 'Inter', sans-serif;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: space-between;
+            overflow: hidden; user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* OROLOGIO PERFETTO */
+        #aod-clock { margin-top: 15vh; text-align: center; }
+        .time-wrapper { display: flex; flex-direction: column; align-items: center; }
+        .digit { font-size: 7.5rem; font-weight: 700; line-height: 0.85; letter-spacing: -4px; color: #eeeeee; }
+        #aod-date { margin-top: 25px; font-size: 1.2rem; font-weight: 400; opacity: 0.9; }
+
+        /* AREA IMPRONTA */
+        .fp-area {
+            position: relative; margin-bottom: 15vh;
+            width: 220px; height: 220px;
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+        }
+
+        .fp-icon {
+            width: 75px; height: 75px; opacity: 0.85;
+            z-index: 10; transition: transform 0.1s ease; object-fit: contain;
+        }
+
+        /* ONDE BIANCHE - ULTRA SPESSE */
+        .wave {
+            position: absolute;
+            border: 12px solid #ffffff; 
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 1;
+            box-shadow: 0 0 20px #ffffff, inset 0 0 15px #ffffff;
+            animation: ripple-medium 0.8s ease-out forwards;
+        }
+
+        @keyframes ripple-medium {
+            0% { width: 50px; height: 50px; opacity: 0; transform: scale(0.8); }
+            20% { opacity: 0.6; }
+            100% { width: 200px; height: 200px; opacity: 0; transform: scale(1.3); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="aod-clock">
+        <div class="time-wrapper">
+            <span class="digit" id="hour">00</span>
+            <span class="digit" id="min">00</span>
+        </div>
+        <div id="aod-date">--</div>
+    </div>
+
+    <div class="fp-area" id="fp-sensor">
+        <img src="https://i.postimg.cc/PfZLXmQ1/Screenshot-20241213-215520-Gallery.jpg" alt="Fingerprint" class="fp-icon" id="fp-image">
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('hour').textContent = String(now.getHours()).padStart(2, '0');
+            document.getElementById('min').textContent = String(now.getMinutes()).padStart(2, '0');
+            const opt = { weekday: 'short', day: 'numeric', month: 'long' };
+            document.getElementById('aod-date').textContent = now.toLocaleDateString('it-IT', opt);
+        }
+
+        // BLOCCA SPEGNIMENTO SCHERMO
+        if ('wakeLock' in navigator) {
+            navigator.wakeLock.request('screen').catch((err) => console.log(err));
+        }
+
+        const sensor = document.getElementById('fp-sensor');
+        const fpImage = document.getElementById('fp-image');
+        let waveTimer;
+
+        function createWave() {
+            const wave = document.createElement('div');
+            wave.classList.add('wave');
+            sensor.appendChild(wave);
+            setTimeout(() => wave.remove(), 800);
+        }
+
+        function triggerWaveSequence() {
+            createWave();
+            setTimeout(createWave, 250);
+            setTimeout(createWave, 500);
+        }
+
+        function startPress(e) {
+            e.preventDefault();
+            fpImage.style.transform = "scale(1.08)";
+            triggerWaveSequence();
+            waveTimer = setInterval(triggerWaveSequence, 900);
+        }
+
+        function endPress() {
+            clearInterval(waveTimer);
+            fpImage.style.transform = "scale(1)";
+        }
+
+        sensor.addEventListener('mousedown', startPress);
+        window.addEventListener('mouseup', endPress);
+        sensor.addEventListener('touchstart', startPress);
+        sensor.addEventListener('touchend', endPress);
+
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>
