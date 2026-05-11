@@ -19,6 +19,10 @@
             align-items: center; justify-content: space-between;
             overflow: hidden; user-select: none;
             -webkit-tap-highlight-color: transparent;
+            
+            /* BLOCCA IL REFRESH E TRASCINAMENTO */
+            overscroll-behavior: none;
+            touch-action: none;
         }
 
         #aod-clock { margin-top: 15vh; text-align: center; }
@@ -26,19 +30,17 @@
         .digit { font-size: 7.5rem; font-weight: 700; line-height: 0.85; letter-spacing: -4px; color: #eeeeee; }
         #aod-date { margin-top: 25px; font-size: 1.2rem; font-weight: 400; opacity: 0.9; }
 
-        /* AREA IMPRONTA - Modificata per spostarla più in basso */
         .fp-area {
             position: relative; 
-            margin-bottom: 5vh; /* Più basso è questo valore, più l'impronta scende verso il basso */
+            margin-bottom: 5vh; 
             width: 220px; 
             height: 220px;
             display: flex; justify-content: center; align-items: center; cursor: pointer;
         }
 
-        /* ICONA IMPRONTA - Modificata per rimpicciolirla */
         .fp-icon {
-            width: 60px; /* Rimpicciolita */
-            height: 60px; /* Rimpicciolita */
+            width: 60px; 
+            height: 60px; 
             opacity: 0.85;
             z-index: 10; transition: transform 0.1s ease; object-fit: contain;
         }
@@ -75,6 +77,8 @@
     </div>
 
     <script>
+        let waveTimer = null; // Dichiarata fuori per essere resettata correttamente
+
         function updateClock() {
             const now = new Date();
             document.getElementById('hour').textContent = String(now.getHours()).padStart(2, '0');
@@ -82,11 +86,13 @@
             const opt = { weekday: 'short', day: 'numeric', month: 'long' };
             document.getElementById('aod-date').textContent = now.toLocaleDateString('it-IT', opt);
         }
-        if ('wakeLock' in navigator) { navigator.wakeLock.request('screen').catch((err) => console.log(err)); }
+
+        if ('wakeLock' in navigator) { 
+            navigator.wakeLock.request('screen').catch((err) => console.log(err)); 
+        }
 
         const sensor = document.getElementById('fp-sensor');
         const fpImage = document.getElementById('fp-image');
-        let waveTimer;
 
         function createWave() {
             const wave = document.createElement('div');
@@ -94,9 +100,33 @@
             sensor.appendChild(wave);
             setTimeout(() => wave.remove(), 800);
         }
-        function triggerWaveSequence() { createWave(); setTimeout(createWave, 250); setTimeout(createWave, 500); }
-        function startPress(e) { e.preventDefault(); fpImage.style.transform = "scale(1.08)"; triggerWaveSequence(); waveTimer = setInterval(triggerWaveSequence, 900); }
-        function endPress() { clearInterval(waveTimer); fpImage.style.transform = "scale(1)"; }
+
+        function triggerWaveSequence() { 
+            createWave(); 
+            setTimeout(createWave, 250); 
+            setTimeout(createWave, 500); 
+        }
+
+        function startPress(e) { 
+            e.preventDefault(); 
+            
+            // FIX BUG: Cancella timer precedenti se premi troppo veloce
+            clearInterval(waveTimer);
+
+            // SCHERMO INTERO: Si attiva al primo tocco sull'impronta
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => console.log(e));
+            }
+
+            fpImage.style.transform = "scale(1.08)"; 
+            triggerWaveSequence(); 
+            waveTimer = setInterval(triggerWaveSequence, 900); 
+        }
+
+        function endPress() { 
+            clearInterval(waveTimer); 
+            fpImage.style.transform = "scale(1)"; 
+        }
 
         sensor.addEventListener('mousedown', startPress);
         window.addEventListener('mouseup', endPress);
