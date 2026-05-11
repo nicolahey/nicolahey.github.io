@@ -24,7 +24,9 @@
             overscroll-behavior: none;
             touch-action: none;
         }
-
+#aod-clock, #fp-sensor {
+    transition: transform 1s ease-in-out;
+}
         #aod-clock { margin-top: 15vh; text-align: center; }
         .time-wrapper { display: flex; flex-direction: column; align-items: center; }
         .digit { font-size: 7.5rem; font-weight: 700; line-height: 0.85; letter-spacing: -4px; color: #eeeeee; }
@@ -77,7 +79,7 @@
     </div>
 
     <script>
-        let waveTimer = null; // Dichiarata fuori per essere resettata correttamente
+        let waveTimer = null;
 
         function updateClock() {
             const now = new Date();
@@ -85,10 +87,22 @@
             document.getElementById('min').textContent = String(now.getMinutes()).padStart(2, '0');
             const opt = { weekday: 'short', day: 'numeric', month: 'long' };
             document.getElementById('aod-date').textContent = now.toLocaleDateString('it-IT', opt);
+
+            // --- ANTI BURN-IN LOGIC ---
+            // Sposta l'orologio di max 5px in ogni direzione
+            const clockX = Math.floor(Math.random() * 11) - 5;
+            const clockY = Math.floor(Math.random() * 11) - 5;
+            document.getElementById('aod-clock').style.transform = `translate(${clockX}px, ${clockY}px)`;
+
+            // Sposta l'impronta indipendentemente (max 3px per essere più discreto)
+            const fpX = Math.floor(Math.random() * 7) - 3;
+            const fpY = Math.floor(Math.random() * 7) - 3;
+            document.getElementById('fp-sensor').style.transform = `translate(${fpX}px, ${fpY}px)`;
         }
 
-        if ('wakeLock' in navigator) { 
-            navigator.wakeLock.request('screen').catch((err) => console.log(err)); 
+        // Funzione per il WakeLock (schermo sempre acceso)
+        if ('wakeLock' in navigator) {
+            navigator.wakeLock.request('screen').catch((err) => console.log(err));
         }
 
         const sensor = document.getElementById('fp-sensor');
@@ -98,34 +112,32 @@
             const wave = document.createElement('div');
             wave.classList.add('wave');
             sensor.appendChild(wave);
-            setTimeout(() => wave.remove(), 800);
+            setTimeout(() => wave.remove(), 900);
         }
 
-        function triggerWaveSequence() { 
-            createWave(); 
-            setTimeout(createWave, 250); 
-            setTimeout(createWave, 500); 
+        function triggerWaveSequence() {
+            createWave();
+            setTimeout(createWave, 250);
+            setTimeout(createWave, 500);
         }
 
-        function startPress(e) { 
-            e.preventDefault(); 
-            
-            // FIX BUG: Cancella timer precedenti se premi troppo veloce
+        function startPress(e) {
+            e.preventDefault();
             clearInterval(waveTimer);
 
-            // SCHERMO INTERO: Si attiva al primo tocco sull'impronta
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(e => console.log(e));
             }
 
-            fpImage.style.transform = "scale(1.08)"; 
-            triggerWaveSequence(); 
-            waveTimer = setInterval(triggerWaveSequence, 900); 
+            // Nota: manteniamo lo scale dell'immagine, il translate è sul contenitore sensor
+            fpImage.style.transform = "scale(1.05)";
+            triggerWaveSequence();
+            waveTimer = setInterval(triggerWaveSequence, 900);
         }
 
-        function endPress() { 
-            clearInterval(waveTimer); 
-            fpImage.style.transform = "scale(1)"; 
+        function endPress() {
+            clearInterval(waveTimer);
+            fpImage.style.transform = "scale(1)";
         }
 
         sensor.addEventListener('mousedown', startPress);
@@ -133,7 +145,8 @@
         sensor.addEventListener('touchstart', startPress);
         sensor.addEventListener('touchend', endPress);
 
-        setInterval(updateClock, 1000);
+        // Aggiorna ogni minuto (60000ms) per cambiare posizione
+        setInterval(updateClock, 60000);
         updateClock();
     </script>
 </body>
