@@ -19,14 +19,15 @@
             align-items: center; justify-content: space-between;
             overflow: hidden; user-select: none;
             -webkit-tap-highlight-color: transparent;
-            
-            /* BLOCCA IL REFRESH E TRASCINAMENTO */
             overscroll-behavior: none;
             touch-action: none;
         }
-#aod-clock, #fp-sensor {
-    transition: transform 1s ease-in-out;
-}
+
+        /* TRANSIZIONE MORBIDA PER GLI SPOSTAMENTI */
+        #aod-clock, #fp-sensor {
+            transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         #aod-clock { margin-top: 15vh; text-align: center; }
         .time-wrapper { display: flex; flex-direction: column; align-items: center; }
         .digit { font-size: 7.5rem; font-weight: 700; line-height: 0.85; letter-spacing: -4px; color: #eeeeee; }
@@ -35,14 +36,12 @@
         .fp-area {
             position: relative; 
             margin-bottom: 5vh; 
-            width: 220px; 
-            height: 220px;
+            width: 220px; height: 220px;
             display: flex; justify-content: center; align-items: center; cursor: pointer;
         }
 
         .fp-icon {
-            width: 60px; 
-            height: 60px; 
+            width: 60px; height: 60px; 
             opacity: 0.85;
             z-index: 10; transition: transform 0.1s ease; object-fit: contain;
         }
@@ -66,6 +65,7 @@
     </style>
 </head>
 <body>
+
     <div id="aod-clock">
         <div class="time-wrapper">
             <span class="digit" id="hour">00</span>
@@ -89,18 +89,18 @@
             document.getElementById('aod-date').textContent = now.toLocaleDateString('it-IT', opt);
 
             // --- ANTI BURN-IN LOGIC ---
-            // Sposta l'orologio di max 5px in ogni direzione
-            const clockX = Math.floor(Math.random() * 11) - 5;
-            const clockY = Math.floor(Math.random() * 11) - 5;
+            
+            // 1. OROLOGIO: Spostamento deciso (X: -40 a +40px, Y: 0 a +60px - MAI PIÙ IN ALTO)
+            const clockX = Math.floor(Math.random() * 81) - 40;
+            const clockY = Math.floor(Math.random() * 61); 
             document.getElementById('aod-clock').style.transform = `translate(${clockX}px, ${clockY}px)`;
 
-            // Sposta l'impronta indipendentemente (max 3px per essere più discreto)
-            const fpX = Math.floor(Math.random() * 7) - 3;
-            const fpY = Math.floor(Math.random() * 7) - 3;
+            // 2. IMPRONTA: Shift visibile (X e Y: -15 a +15px)
+            const fpX = Math.floor(Math.random() * 31) - 15;
+            const fpY = Math.floor(Math.random() * 31) - 15;
             document.getElementById('fp-sensor').style.transform = `translate(${fpX}px, ${fpY}px)`;
         }
 
-        // Funzione per il WakeLock (schermo sempre acceso)
         if ('wakeLock' in navigator) {
             navigator.wakeLock.request('screen').catch((err) => console.log(err));
         }
@@ -125,11 +125,13 @@
             e.preventDefault();
             clearInterval(waveTimer);
 
+            // RESET POSIZIONE: Torna al centro perfetto appena la tocchi
+            sensor.style.transform = "translate(0px, 0px)";
+
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(e => console.log(e));
             }
 
-            // Nota: manteniamo lo scale dell'immagine, il translate è sul contenitore sensor
             fpImage.style.transform = "scale(1.05)";
             triggerWaveSequence();
             waveTimer = setInterval(triggerWaveSequence, 900);
@@ -145,7 +147,7 @@
         sensor.addEventListener('touchstart', startPress);
         sensor.addEventListener('touchend', endPress);
 
-        // Aggiorna ogni minuto (60000ms) per cambiare posizione
+        // Aggiorna ogni minuto per prevenire il burn-in
         setInterval(updateClock, 60000);
         updateClock();
     </script>
