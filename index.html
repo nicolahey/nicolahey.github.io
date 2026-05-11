@@ -23,11 +23,15 @@
             touch-action: none;
         }
 
-        /* TRANSIZIONE MORBIDA PER GLI SPOSTAMENTI */
-        #aod-clock, #fp-sensor {
-            transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+       /* L'orologio continua a muoversi lentamente (1.5s) */
+#aod-clock {
+    transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
+/* L'impronta ora è molto più veloce nel tornare in posizione (0.5s) */
+#fp-sensor {
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
         #aod-clock { margin-top: 15vh; text-align: center; }
         .time-wrapper { display: flex; flex-direction: column; align-items: center; }
         .digit { font-size: 7.5rem; font-weight: 700; line-height: 0.85; letter-spacing: -4px; color: #eeeeee; }
